@@ -35,7 +35,6 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 
-    // 테스트 실행 시 더 많은 정보 출력
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
@@ -48,7 +47,6 @@ tasks.withType<JavaCompile> {
     options.compilerArgs.add("-parameters")
 }
 
-// JAR 매니페스트 설정
 tasks.jar {
     manifest {
         attributes(
