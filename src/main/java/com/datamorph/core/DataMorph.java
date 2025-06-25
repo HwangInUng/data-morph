@@ -1,6 +1,7 @@
 package com.datamorph.core;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * DataMorph 라이브러리의 메인 진입점
@@ -32,7 +33,7 @@ public final class DataMorph {
         
         // TODO: 실제 DataSource 구현체를 반환해야 함
         // 일단 테스트를 통과하기 위해 임시 구현체 반환
-        return new DataSource() {};
+        return new ListDataSource(List.of());
     }
     
     /**
@@ -50,6 +51,6 @@ public final class DataMorph {
         
         // TODO: 실제 DataSource 구현체를 반환해야 함
         // 일단 테스트를 통과하기 위해 임시 구현체 반환
-        return new DataSource() {};
+        return new ListDataSource(List.of());
     }
 }
