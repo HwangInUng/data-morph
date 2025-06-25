@@ -1,7 +1,6 @@
 package com.datamorph.core;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -31,9 +30,15 @@ public class ListDataSource implements DataSource {
 	public DataSource transform (Consumer<DataRow> transformer) {
 		Objects.requireNonNull(transformer, "Transformer cannot be null");
 
-		// TODO: 실제 구현 필요
-		// 각 row에 transformer를 적용한 새로운 ListDataSource를 반환해야 함
-		return this;
+		List<DataRow> transformedRows = rows.stream()
+											.map(row -> {
+												DataRow newRow = row.copy();
+												transformer.accept(newRow);
+												return newRow;
+											})
+											.collect(Collectors.toList());
+
+		return new ListDataSource(transformedRows);
 	}
 
 	@Override
@@ -49,7 +54,6 @@ public class ListDataSource implements DataSource {
 
 	@Override
 	public List<DataRow> toList () {
-		// 방어적 복사: 외부에서 리스트를 수정해도 내부 상태가 변경되지 않도록
-		return Collections.unmodifiableList(new ArrayList<>(rows));
+		return List.copyOf(rows);
 	}
 }
