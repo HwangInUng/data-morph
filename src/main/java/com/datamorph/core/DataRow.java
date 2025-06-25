@@ -134,6 +134,6 @@ public class DataRow {
 
 	@Override
 	public String toString () {
-		return "DataRow" + fields;
+		return "DataRow :: " + fields;
 	}
 }
