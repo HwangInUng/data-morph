@@ -20,11 +20,13 @@ public class DataRow {
 	 * 지정된 필드의 문자열 값을 반환합니다.
 	 *
 	 * @param fieldName 필드명
-	 * @return 필드의 문자열 값
-	 * @throws IllegalArgumentException 필드가 존재하지 않을 때
+	 * @return 필드의 문자열 값, 필드가 존재하지 않거나 null이면 null 반환
 	 */
 	public String getString (String fieldName) {
-		validateFieldExists(fieldName);
+		if (!has(fieldName)) {
+			return null;
+		}
+
 		Object value = fields.get(fieldName);
 		return value != null ? value.toString() : null;
 	}
@@ -33,11 +35,14 @@ public class DataRow {
 	 * 지정된 필드의 정수 값을 반환합니다.
 	 *
 	 * @param fieldName 필드명
-	 * @return 필드의 정수 값, null일 경우 null 반환
+	 * @return 필드의 정수 값, 필드가 존재하지 않거나 null일 경우 null 반환
 	 * @throws IllegalArgumentException 필드를 정수로 변환할 수 없을 때
 	 */
 	public Integer getInt (String fieldName) {
-		validateFieldExists(fieldName);
+		if (!has(fieldName)) {
+			return null;
+		}
+
 		Object value = fields.get(fieldName);
 
 		if (value == null) {
@@ -65,35 +70,38 @@ public class DataRow {
 	 * 지정된 필드의 boolean 값을 반환합니다.
 	 *
 	 * @param fieldName 필드명
-	 * @return 필드의 boolean 값, null일 경우 null 반환
+	 * @return 필드의 boolean 값, 필드가 존재하지 않거나 null일 경우 null 반환
 	 * @throws IllegalArgumentException 필드를 boolean 값으로 변환할 수 없을 때
 	 */
 	public Boolean getBoolean (String fieldName) {
-		validateFieldExists(fieldName);
+		if (!has(fieldName)) {
+			return null;
+		}
+
 		Object value = fields.get(fieldName);
 
 		if (value == null) {
 			return null;
 		}
 
+		if (value instanceof Boolean) {
+			return (Boolean) value;
+		}
+
 		if (value instanceof String) {
 			String strValue = value.toString().trim().toLowerCase();
-			if ("true".equals(strValue) || "1".equals(strValue) || "y".equals(strValue)) {
+			if ("true".equals(strValue) || "1".equals(strValue) || "yes".equals(strValue) || "y".equals(strValue)) {
 				return true;
 			}
 
-			if ("false".equals(strValue) || "0".equals(strValue) || "n".equals(strValue)) {
+			if ("false".equals(strValue) || "0".equals(strValue) || "no".equals(strValue) || "n".equals(strValue)) {
 				return false;
 			}
 		}
 
-		try {
-			return (Boolean) value;
-		} catch (ClassCastException e) {
-			throw new IllegalArgumentException(
-					"Field '" + fieldName + "' cannot be converted to boolean: " + value
-			);
-		}
+		throw new IllegalArgumentException(
+				"Field '" + fieldName + "' cannot be converted to boolean: " + value
+		);
 	}
 
 	/**
@@ -118,18 +126,6 @@ public class DataRow {
 	 */
 	public boolean has (String fieldName) {
 		return fields.containsKey(fieldName);
-	}
-
-	/**
-	 * 필드가 존재하는지 검증합니다.
-	 *
-	 * @param fieldName 필드명
-	 * @throws IllegalArgumentException 필드가 존재하지 않을 때
-	 */
-	private void validateFieldExists (String fieldName) {
-		if (!has(fieldName)) {
-			throw new IllegalArgumentException("No such field: " + fieldName);
-		}
 	}
 
 	/**
