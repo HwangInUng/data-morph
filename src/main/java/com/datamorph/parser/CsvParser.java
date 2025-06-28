@@ -21,7 +21,7 @@ public class CsvParser extends AbstractParser {
 		validateInput(content, "CSV");
 
 		if (isEmpty(content)) {
-			throw new IllegalArgumentException("CSV content cannot be null");
+			return getEmptyResult();
 		}
 
 		List<String> lines = splitIntoLines(content);

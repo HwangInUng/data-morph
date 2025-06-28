@@ -152,14 +152,117 @@ com.datamorph/
 implementation 'com.example:datamorph:1.0.0'
 ```
 
-#### Basic File Conversion
+#### Basic File Processing
 ```java
-DataMorph.from("input.csv").to("output.json");
+// file data read
+DataSource dataSource = DataMorph.from("employees.csv");
+
+// filter & transform
+List<DataRow> results = dataSource
+    .filter(row -> {
+        Integer age = row.getInt("age");
+        return age != null && age >= 30;
+    })
+    .transform(row -> {
+        Integer salary = row.getInt("salary");
+        if (salary != null) {
+            int bonusSalary = (int)(salary * 1.1);
+            row.set("salary", bonusSalary);
+        }
+    })
+    .toList();
 ```
 
-#### Memory Processing
+#### String Content Processing
 ```java
-List<User> users = DataMorph.from("users.csv").toList(User.class);
+// JSON data read
+String jsonData = "[{\"name\":\"John\",\"age\":30}]";
+DataSource dataSource = DataMorph.fromString(jsonData, Format.JSON);
+
+// data process
+List<DataRow> results = dataSource.toList();
+```
+
+#### CSV File Example
+```java
+// CSV: name,age,department
+// John,30,Engineering
+// Jane,25,Marketing
+
+DataSource employees = DataMorph.from("employees.csv");
+
+List<DataRow> seniorEngineers = employees
+    .filter(row -> "Engineering".equals(row.getString("department")))
+    .filter(row -> row.getInt("age") > 30)
+    .toList();
+```
+
+### 📚 API Examples
+
+#### 파일 처리
+```java
+// CSV file read
+DataSource csvData = DataMorph.from("data.csv");
+
+// JSON file read 
+DataSource jsonData = DataMorph.from("data.json");
+
+// auto formatting
+DataSource autoData = DataMorph.from("unknown.csv");
+```
+
+#### 문자열 처리
+```java
+// CSV parsing
+String csvContent = "name,age\nJohn,30\nJane,25";
+DataSource csvData = DataMorph.fromString(csvContent, Format.CSV);
+
+// JSON parsing
+String jsonContent = "[{\"name\":\"John\",\"age\":30}]";
+DataSource jsonData = DataMorph.fromString(jsonContent, Format.JSON);
+```
+
+#### 데이터 변환
+```java
+DataSource transformed = DataMorph.from("employees.csv")
+    .transform(row -> {
+        Integer age = row.getInt("age");
+        if (age != null) {
+            String ageGroup = age < 30 ? "젊은층" : age < 50 ? "중년층" : "장년층";
+            row.set("age_group", ageGroup);
+        }
+    })
+    .transform(row -> row.set("salary", (int)(salary * 1.05)));
+```
+
+#### 데이터 필터링
+```java
+DataSource filtered = DataMorph.from("sales.csv")
+    .filter(row -> row.isOverCount())
+    .filter(row -> "서울".equals(row.getString("region")));
+```
+
+#### 체인 방식 처리
+```java
+List<DataRow> result = DataMorph.from("customers.csv")
+    .filter(row -> "VIP".equals(row.getString("grade")))
+    .transform(row -> row.set("discount", "20%"))
+    .filter(row -> "Active".equals(row.getString("status")))
+    .toList();
+```
+
+#### 에러 처리
+```java
+try {
+    DataSource data = DataMorph.from("data.csv");
+    List<DataRow> results = data.toList();
+} catch (IllegalArgumentException e) {
+    // 파일 관련 오류 (존재하지 않음, 잘못된 경로 등)
+    System.err.println("파일 오류: " + e.getMessage());
+} catch (ParseException e) {
+    // 파싱 오류 (잘못된 형식, 지원하지 않는 포맷 등)
+    System.err.println("파싱 오류: " + e.getMessage());
+}
 ```
 
 ### 📄 Documentation - (작업 중)

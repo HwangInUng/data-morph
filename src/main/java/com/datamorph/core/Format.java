@@ -7,6 +7,4 @@ package com.datamorph.core;
 public enum Format {
     CSV,
     JSON,
-    XML
-    // TODO: 나머지 포맷들은 필요할 때 추가
 }

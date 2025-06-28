@@ -107,12 +107,13 @@ class CsvParserTest extends ParserContractTest {
 
 		@ParameterizedTest
 		@ValueSource(strings = {"", "   ", "\n", "\r\n"})
-		@DisplayName("빈 문자열이나 공백만 있으면 예외를 던진다")
+		@DisplayName("빈 문자열이나 공백만 있으면 빈 List<Data>를 반환")
 		void parseEmptyOrBlankString (String csv) {
-			// when & then
-			assertThatThrownBy(() -> parser.parse(csv))
-					.isInstanceOf(IllegalArgumentException.class)
-					.hasMessage("CSV content cannot be null");
+			// when
+			List<DataRow> result = parser.parse(csv);
+
+			// then
+			assertThat(result).isEmpty();
 		}
 	}
 
