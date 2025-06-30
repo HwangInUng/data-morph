@@ -1,7 +1,7 @@
 package com.datamorph.transform.operations;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.transform.TransformException;
+import com.datamorph.exceptions.TransformException;
 
 /**
  * 새로운 필드를 추가하는 Transform 연산
@@ -26,6 +26,7 @@ public class AddOperation implements TransformOperation {
 	public DataRow apply (DataRow row) {
 		DataRow newRow = row.copy();
 		newRow.set(fieldName, value);
+
 		return newRow;
 	}
 

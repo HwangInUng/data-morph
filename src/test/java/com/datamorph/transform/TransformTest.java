@@ -3,6 +3,7 @@ package com.datamorph.transform;
 import com.datamorph.core.DataRow;
 import com.datamorph.core.DataSource;
 import com.datamorph.core.ListDataSource;
+import com.datamorph.exceptions.TransformException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

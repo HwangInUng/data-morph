@@ -1,6 +1,6 @@
 package com.datamorph.parser;
 
-import com.datamorph.error.ParseException;
+import com.datamorph.exceptions.ParseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

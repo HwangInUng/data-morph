@@ -1,4 +1,4 @@
-package com.datamorph.error;
+package com.datamorph.exceptions;
 
 /**
  * 데이터 파싱 중 발생하는 예외를 나타내는 클래스

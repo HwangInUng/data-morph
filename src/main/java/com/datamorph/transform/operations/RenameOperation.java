@@ -1,7 +1,7 @@
 package com.datamorph.transform.operations;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.transform.TransformException;
+import com.datamorph.exceptions.TransformException;
 
 /**
  * 필드 이름을 변경하는 Transform 연산
@@ -31,6 +31,7 @@ public class RenameOperation implements TransformOperation {
 
 		if (newRow.has(oldName)) {
 			Object value = newRow.getObject(oldName);
+
 			newRow.set(newName, value);
 			newRow.remove(oldName);
 		}

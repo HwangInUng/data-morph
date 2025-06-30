@@ -1,7 +1,7 @@
 package com.datamorph.parser;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.error.ParseException;
+import com.datamorph.exceptions.ParseException;
 import com.datamorph.fixtures.CsvFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

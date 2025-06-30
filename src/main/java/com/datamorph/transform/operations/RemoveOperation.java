@@ -1,7 +1,7 @@
 package com.datamorph.transform.operations;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.transform.TransformException;
+import com.datamorph.exceptions.TransformException;
 
 /**
  * 필드를 제거하는 Transform 연산
@@ -24,6 +24,7 @@ public class RemoveOperation implements TransformOperation {
 	public DataRow apply (DataRow row) {
 		DataRow newRow = row.copy();
 		newRow.remove(fieldName);
+
 		return newRow;
 	}
 

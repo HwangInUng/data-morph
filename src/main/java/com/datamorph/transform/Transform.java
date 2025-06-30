@@ -1,6 +1,7 @@
 package com.datamorph.transform;
 
 import com.datamorph.core.DataRow;
+import com.datamorph.exceptions.TransformException;
 import com.datamorph.transform.operations.*;
 
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class Transform {
 		 *
 		 * @param oldName 기존 필드명
 		 * @param newName 새로운 필드명
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder rename (String oldName, String newName) {
 			operations.add(new RenameOperation(oldName, newName));
@@ -80,7 +81,7 @@ public class Transform {
 		 *
 		 * @param fieldName 필드명
 		 * @param value     필드 값
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder add (String fieldName, Object value) {
 			operations.add(new AddOperation(fieldName, value));
@@ -91,7 +92,7 @@ public class Transform {
 		 * 필드를 제거합니다.
 		 *
 		 * @param fieldName 제거할 필드명
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder remove (String fieldName) {
 			operations.add(new RemoveOperation(fieldName));
@@ -103,7 +104,7 @@ public class Transform {
 		 *
 		 * @param condition 조건
 		 * @param action    액션
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder when (Predicate<DataRow> condition, Function<DataRow, DataRow> action) {
 			operations.add(new ConditionalOperation(condition, action));
@@ -116,7 +117,7 @@ public class Transform {
 		 * @param condition   조건
 		 * @param action      액션
 		 * @param description 설명
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder when (Predicate<DataRow> condition, Function<DataRow, DataRow> action, String description) {
 			operations.add(new ConditionalOperation(condition, action, description));
@@ -127,12 +128,13 @@ public class Transform {
 		 * 커스텀 Transform 연산을 추가합니다.
 		 *
 		 * @param operation 커스텀 연산
-		 * @return TransformBuilder (체이닝용)
+		 * @return TransformBuilder
 		 */
 		public TransformBuilder custom (TransformOperation operation) {
 			if (operation == null) {
 				throw new TransformException("CUSTOM", null, "Operation cannot be null");
 			}
+
 			operations.add(operation);
 			return this;
 		}

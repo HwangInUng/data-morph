@@ -1,7 +1,7 @@
 package com.datamorph.transform.operations;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.transform.TransformException;
+import com.datamorph.exceptions.TransformException;
 
 import java.util.function.Function;
 import java.util.function.Predicate;

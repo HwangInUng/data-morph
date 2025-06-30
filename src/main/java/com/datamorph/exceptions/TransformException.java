@@ -1,4 +1,4 @@
-package com.datamorph.transform;
+package com.datamorph.exceptions;
 
 /**
  * Transform 연산 중 발생하는 예외를 나타내는 클래스

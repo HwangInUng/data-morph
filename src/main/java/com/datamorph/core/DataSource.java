@@ -1,5 +1,7 @@
 package com.datamorph.core;
 
+import com.datamorph.mapper.ObjectMapper;
+import com.datamorph.exceptions.ObjectMappingException;
 import com.datamorph.transform.Transform;
 
 import java.util.List;
@@ -78,4 +80,38 @@ public interface DataSource {
 	 * @return 데이터 행의 불변 리스트
 	 */
 	List<DataRow> toList ();
+
+	/**
+	 * 데이터를 지정된 클래스의 객체 리스트로 변환합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * List<Employee> employees = dataSource.toList(Employee.class);
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param <T>         변환 대상 타입
+	 * @param targetClass 변환 대상 클래스
+	 * @return 변환된 객체의 리스트
+	 * @throws RuntimeException         객체 변환 중 오류가 발생한 경우
+	 * @throws IllegalArgumentException targetClass가 null인 경우
+	 */
+	default <T> List<T> toList (Class<T> targetClass) {
+		if (targetClass == null) {
+			throw new IllegalArgumentException("Target class cannot be null");
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		return toList().stream()
+					   .map(dataRow -> {
+						   try {
+							   return mapper.toObject(dataRow, targetClass);
+						   } catch (ObjectMappingException e) {
+							   throw new RuntimeException("Failed to convert DataRow to "
+									   + targetClass.getSimpleName(), e);
+						   }
+					   })
+					   .toList();
+	}
 }
