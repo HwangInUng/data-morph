@@ -1,5 +1,6 @@
 package com.datamorph.core;
 
+import com.datamorph.transform.Transform;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,17 @@ public class ListDataSource implements DataSource {
 												transformer.accept(newRow);
 												return newRow;
 											})
+											.collect(Collectors.toList());
+
+		return new ListDataSource(transformedRows);
+	}
+
+	@Override
+	public DataSource transform(Transform transform) {
+		Objects.requireNonNull(transform, "Transform cannot be null");
+
+		List<DataRow> transformedRows = rows.stream()
+											.map(transform::apply)
 											.collect(Collectors.toList());
 
 		return new ListDataSource(transformedRows);

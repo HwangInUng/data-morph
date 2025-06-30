@@ -1,5 +1,7 @@
 package com.datamorph.core;
 
+import com.datamorph.transform.Transform;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -16,45 +18,64 @@ import java.util.function.Predicate;
  * @since 2025.06.25
  */
 public interface DataSource {
-    
-    /**
-     * 각 데이터 행에 변환을 적용합니다.
-     * <p>
-     * 예시:
-     * <pre>{@code
-     * dataSource.transform(row -> row.set("name", row.getString("name").toUpperCase()))
-     * }</pre>
-     * </p>
-     * 
-     * @param transformer 각 행에 적용할 변환 함수
-     * @return 변환이 적용된 새로운 DataSource
-     * @throws NullPointerException transformer가 null인 경우
-     */
-    DataSource transform(Consumer<DataRow> transformer);
-    
-    /**
-     * 주어진 조건에 맞는 행만 필터링합니다.
-     * <p>
-     * 예시:
-     * <pre>{@code
-     * dataSource.filter(row -> row.getInt("age") > 20)
-     * }</pre>
-     * </p>
-     * 
-     * @param predicate 필터 조건
-     * @return 필터링된 새로운 DataSource
-     * @throws NullPointerException predicate가 null인 경우
-     */
-    DataSource filter(Predicate<DataRow> predicate);
-    
-    /**
-     * 모든 데이터를 List로 반환합니다.
-     * <p>
-     * 이는 terminal operation으로, 실제 데이터 처리가 수행됩니다.
-     * 반환된 리스트는 수정할 수 없습니다.
-     * </p>
-     * 
-     * @return 데이터 행의 불변 리스트
-     */
-    List<DataRow> toList();
+
+	/**
+	 * 각 데이터 행에 변환을 적용합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * dataSource.transform(row -> row.set("name", row.getString("name").toUpperCase()))
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param transformer 각 행에 적용할 변환 함수
+	 * @return 변환이 적용된 새로운 DataSource
+	 * @throws NullPointerException transformer가 null인 경우
+	 */
+	DataSource transform (Consumer<DataRow> transformer);
+
+	/**
+	 * Transform 객체를 사용하여 구조화된 변환을 적용합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * dataSource.transform(Transform.builder()
+	 *     .rename("emp_name", "name")
+	 *     .add("bonus", 1000)
+	 *     .calculate("total_pay", "salary + bonus")
+	 *     .build())
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param transform 적용할 Transform 객체
+	 * @return 변환이 적용된 새로운 DataSource
+	 * @throws NullPointerException transform이 null인 경우
+	 */
+	DataSource transform (Transform transform);
+
+	/**
+	 * 주어진 조건에 맞는 행만 필터링합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * dataSource.filter(row -> row.getInt("age") > 20)
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param predicate 필터 조건
+	 * @return 필터링된 새로운 DataSource
+	 * @throws NullPointerException predicate가 null인 경우
+	 */
+	DataSource filter (Predicate<DataRow> predicate);
+
+	/**
+	 * 모든 데이터를 List로 반환합니다.
+	 * <p>
+	 * 이는 terminal operation으로, 실제 데이터 처리가 수행됩니다.
+	 * 반환된 리스트는 수정할 수 없습니다.
+	 * </p>
+	 *
+	 * @return 데이터 행의 불변 리스트
+	 */
+	List<DataRow> toList ();
 }
