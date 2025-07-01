@@ -302,7 +302,7 @@ class CsvParserTest extends ParserContractTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"true", "TRUE", "True", "1", "yes", "YES", "y", "Y"})
+		@ValueSource(strings = {"true", "TRUE", "True", "yes", "YES", "y", "Y"})
 		@DisplayName("다양한 true 값을 올바르게 파싱한다")
 		void parseTrueValues (String input) {
 			// given
@@ -317,7 +317,7 @@ class CsvParserTest extends ParserContractTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"false", "FALSE", "False", "0", "no", "NO", "n", "N"})
+		@ValueSource(strings = {"false", "FALSE", "False", "no", "NO", "n", "N"})
 		@DisplayName("다양한 false 값을 올바르게 파싱한다")
 		void parseFalseValues (String input) {
 			// given

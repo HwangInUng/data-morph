@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
  * 공통적인 파싱 로직과 유틸리티 메서드를 제공
  */
 public abstract class AbstractParser implements Parser {
-	private static final Pattern BOOLEAN_TRUE = Pattern.compile("^(true|1|yes|y)$", Pattern.CASE_INSENSITIVE);
-	private static final Pattern BOOLEAN_FALSE = Pattern.compile("^(false|0|no|n)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern BOOLEAN_TRUE = Pattern.compile("^(true|yes|y)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern BOOLEAN_FALSE = Pattern.compile("^(false|no|n)$", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * InputStream을 문자열로 변환하는 공통 메서드

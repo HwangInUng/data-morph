@@ -44,7 +44,6 @@ public interface DataSource {
 	 * dataSource.transform(Transform.builder()
 	 *     .rename("emp_name", "name")
 	 *     .add("bonus", 1000)
-	 *     .calculate("total_pay", "salary + bonus")
 	 *     .build())
 	 * }</pre>
 	 * </p>

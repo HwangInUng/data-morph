@@ -67,6 +67,41 @@ public class DataRow {
 	}
 
 	/**
+	 * 지정된 필드의 실수 값을 반환합니다.
+	 *
+	 * @param fieldName 필드명
+	 * @return 필드의 실수 값, 필드가 존재하지 않거나 null일 경우 null 반환
+	 * @throws IllegalArgumentException 필드를 실수로 변환할 수 없을 때
+	 */
+	public Double getDouble (String fieldName) {
+		if (!has(fieldName)) {
+			return null;
+		}
+
+		Object value = fields.get(fieldName);
+
+		if (value == null) {
+			return null;
+		}
+
+		if (value instanceof Double doubleValue) {
+			return doubleValue;
+		}
+
+		if (value instanceof Number numberValue) {
+			return numberValue.doubleValue();
+		}
+
+		try {
+			return Double.parseDouble(value.toString().trim());
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException(
+					"Field '" + fieldName + "' cannot be converted to double: " + value
+			);
+		}
+	}
+
+	/**
 	 * 지정된 필드의 boolean 값을 반환합니다.
 	 *
 	 * @param fieldName 필드명
@@ -146,6 +181,15 @@ public class DataRow {
 	 */
 	public Object remove (String fieldName) {
 		return fields.remove(fieldName);
+	}
+
+	/**
+	 * 모든 필드명을 반환합니다.
+	 *
+	 * @return 필드명의 집합
+	 */
+	public Set<String> getFieldNames () {
+		return fields.keySet();
 	}
 
 	/**

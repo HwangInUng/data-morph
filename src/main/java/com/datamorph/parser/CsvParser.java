@@ -207,6 +207,9 @@ public class CsvParser extends AbstractParser {
 
 	/**
 	 * 문자열 값을 적절한 데이터 타입으로 변환
+	 * 
+	 * 우선순위: 숫자(Integer/Double) > 불린 > 문자열
+	 * 이렇게 하면 "0"은 정수 0으로, "false"는 불린 false로 변환됩니다.
 	 */
 	private Object convertValue (String value) {
 		if (value == null) {
@@ -219,10 +222,7 @@ public class CsvParser extends AbstractParser {
 
 		String trimmed = value.trim();
 
-		if (isBoolean(trimmed)) {
-			return parseBoolean(trimmed);
-		}
-
+		// 1순위: 숫자 타입 체크 (정수 먼저)
 		if (isInteger(trimmed)) {
 			return parseInteger(trimmed);
 		}
@@ -231,6 +231,12 @@ public class CsvParser extends AbstractParser {
 			return parseDouble(trimmed);
 		}
 
+		// 2순위: 불린 타입 체크 (숫자가 아닌 경우에만)
+		if (isBoolean(trimmed)) {
+			return parseBoolean(trimmed);
+		}
+
+		// 3순위: 문자열
 		return trimmed;
 	}
 }
