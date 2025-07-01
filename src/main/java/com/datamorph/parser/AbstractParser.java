@@ -1,7 +1,7 @@
 package com.datamorph.parser;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.error.ParseException;
+import com.datamorph.exceptions.ParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
  * 공통적인 파싱 로직과 유틸리티 메서드를 제공
  */
 public abstract class AbstractParser implements Parser {
-	private static final Pattern BOOLEAN_TRUE = Pattern.compile("^(true|1|yes|y)$", Pattern.CASE_INSENSITIVE);
-	private static final Pattern BOOLEAN_FALSE = Pattern.compile("^(false|0|no|n)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern BOOLEAN_TRUE = Pattern.compile("^(true|yes|y)$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern BOOLEAN_FALSE = Pattern.compile("^(false|no|n)$", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * InputStream을 문자열로 변환하는 공통 메서드
@@ -35,9 +35,11 @@ public abstract class AbstractParser implements Parser {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
 			StringBuilder content = new StringBuilder();
 			String line;
+
 			while ((line = reader.readLine()) != null) {
 				content.append(line).append("\n");
 			}
+
 			return content.toString().trim();
 		} catch (IOException e) {
 			throw new ParseException("Failed to read from InputStream", e);
@@ -117,9 +119,11 @@ public abstract class AbstractParser implements Parser {
 	@Override
 	public List<DataRow> parse (InputStream input) {
 		String content = readInputStream(input);
+
 		if (isEmpty(content)) {
 			return getEmptyResult();
 		}
+
 		return parse(content);
 	}
 
@@ -133,6 +137,7 @@ public abstract class AbstractParser implements Parser {
 		if (value == null || value.trim().isEmpty()) {
 			return false;
 		}
+
 		try {
 			Integer.parseInt(value.trim());
 			return true;
@@ -151,6 +156,7 @@ public abstract class AbstractParser implements Parser {
 		if (value == null || value.trim().isEmpty()) {
 			return false;
 		}
+
 		try {
 			Double.parseDouble(value.trim());
 			return true;
@@ -169,6 +175,7 @@ public abstract class AbstractParser implements Parser {
 		if (value == null || value.trim().isEmpty()) {
 			return false;
 		}
+
 		String trimmed = value.trim().toLowerCase();
 		return BOOLEAN_TRUE.matcher(trimmed).matches() || BOOLEAN_FALSE.matcher(trimmed).matches();
 	}

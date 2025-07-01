@@ -67,6 +67,41 @@ public class DataRow {
 	}
 
 	/**
+	 * 지정된 필드의 실수 값을 반환합니다.
+	 *
+	 * @param fieldName 필드명
+	 * @return 필드의 실수 값, 필드가 존재하지 않거나 null일 경우 null 반환
+	 * @throws IllegalArgumentException 필드를 실수로 변환할 수 없을 때
+	 */
+	public Double getDouble (String fieldName) {
+		if (!has(fieldName)) {
+			return null;
+		}
+
+		Object value = fields.get(fieldName);
+
+		if (value == null) {
+			return null;
+		}
+
+		if (value instanceof Double doubleValue) {
+			return doubleValue;
+		}
+
+		if (value instanceof Number numberValue) {
+			return numberValue.doubleValue();
+		}
+
+		try {
+			return Double.parseDouble(value.toString().trim());
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException(
+					"Field '" + fieldName + "' cannot be converted to double: " + value
+			);
+		}
+	}
+
+	/**
 	 * 지정된 필드의 boolean 값을 반환합니다.
 	 *
 	 * @param fieldName 필드명
@@ -119,6 +154,16 @@ public class DataRow {
 	}
 
 	/**
+	 * 지정된 필드의 원본 객체 값을 반환합니다.
+	 *
+	 * @param fieldName 필드명
+	 * @return 필드의 원본 객체 값, 필드가 존재하지 않으면 null
+	 */
+	public Object getObject (String fieldName) {
+		return fields.get(fieldName);
+	}
+
+	/**
 	 * 필드의 존재 여부를 확인합니다.
 	 *
 	 * @param fieldName 필드명
@@ -126,6 +171,25 @@ public class DataRow {
 	 */
 	public boolean has (String fieldName) {
 		return fields.containsKey(fieldName);
+	}
+
+	/**
+	 * 필드를 제거합니다.
+	 *
+	 * @param fieldName 제거할 필드명
+	 * @return 제거된 필드의 값, 필드가 존재하지 않으면 null
+	 */
+	public Object remove (String fieldName) {
+		return fields.remove(fieldName);
+	}
+
+	/**
+	 * 모든 필드명을 반환합니다.
+	 *
+	 * @return 필드명의 집합
+	 */
+	public Set<String> getFieldNames () {
+		return fields.keySet();
 	}
 
 	/**
@@ -141,30 +205,30 @@ public class DataRow {
 			Object value = entry.getValue();
 			copy.fields.put(key, deepCopyValue(value));
 		}
-		
+
 		return copy;
 	}
-	
+
 	/**
 	 * 값을 깊은 복사합니다.
-	 * 
+	 *
 	 * @param value 복사할 값
 	 * @return 복사된 값
 	 */
 	@SuppressWarnings("unchecked")
-	private Object deepCopyValue(Object value) {
+	private Object deepCopyValue (Object value) {
 		if (value == null) {
 			return null;
 		}
-		
+
 		// Immutable types - no need to copy
-		if (value instanceof String || 
-		    value instanceof Number || 
-		    value instanceof Boolean ||
-		    value instanceof Character) {
+		if (value instanceof String ||
+				value instanceof Number ||
+				value instanceof Boolean ||
+				value instanceof Character) {
 			return value;
 		}
-		
+
 		// Collections
 		if (value instanceof List) {
 			List<Object> original = (List<Object>) value;
@@ -174,7 +238,7 @@ public class DataRow {
 			}
 			return copy;
 		}
-		
+
 		if (value instanceof Set) {
 			Set<Object> original = (Set<Object>) value;
 			Set<Object> copy = new LinkedHashSet<>(original.size());
@@ -183,7 +247,7 @@ public class DataRow {
 			}
 			return copy;
 		}
-		
+
 		if (value instanceof Map) {
 			Map<Object, Object> original = (Map<Object, Object>) value;
 			Map<Object, Object> copy = new LinkedHashMap<>(original.size());
@@ -192,7 +256,7 @@ public class DataRow {
 			}
 			return copy;
 		}
-		
+
 		// Arrays
 		if (value.getClass().isArray()) {
 			if (value instanceof Object[] objects) {
@@ -229,20 +293,20 @@ public class DataRow {
 				return chars.clone();
 			}
 		}
-		
+
 		// Date/Time types (immutable in Java 8+)
 		if (value instanceof java.time.LocalDate ||
-		    value instanceof java.time.LocalDateTime ||
-		    value instanceof java.time.LocalTime ||
-		    value instanceof java.time.ZonedDateTime) {
+				value instanceof java.time.LocalDateTime ||
+				value instanceof java.time.LocalTime ||
+				value instanceof java.time.ZonedDateTime) {
 			return value;
 		}
-		
+
 		// Legacy Date (mutable)
 		if (value instanceof Date date) {
 			return new Date((date).getTime());
 		}
-		
+
 		// For other objects, attempt to use clone if available
 		if (value instanceof Cloneable) {
 			try {
@@ -252,7 +316,7 @@ public class DataRow {
 				return value;
 			}
 		}
-		
+
 		return value;
 	}
 

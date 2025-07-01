@@ -1,6 +1,8 @@
 package com.datamorph.core;
 
-import com.datamorph.error.ParseException;
+import com.datamorph.exceptions.ParseException;
+import com.datamorph.mapper.ObjectMapper;
+import com.datamorph.exceptions.ObjectMappingException;
 import com.datamorph.parser.Parser;
 import com.datamorph.parser.ParserFactory;
 
@@ -50,7 +52,6 @@ public final class DataMorph {
 			}
 
 			return new ListDataSource(rows);
-
 		} catch (IOException e) {
 			throw new ParseException("Failed to read file: " + filePath, e);
 		} catch (ParseException e) {
@@ -76,12 +77,95 @@ public final class DataMorph {
 		try {
 			Parser parser = ParserFactory.createParser(format);
 			List<DataRow> rows = parser.parse(content);
-			return new ListDataSource(rows);
 
+			return new ListDataSource(rows);
 		} catch (ParseException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new ParseException("Failed to parse content with format: " + format, e);
+		}
+	}
+
+	/**
+	 * POJO 객체 리스트로부터 DataSource를 생성합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * List<Employee> employees = Arrays.asList(
+	 *     new Employee("John", 30, 50000),
+	 *     new Employee("Jane", 25, 45000)
+	 * );
+	 * DataSource dataSource = DataMorph.fromObjects(employees);
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param objects POJO 객체 리스트
+	 * @param <T>     객체 타입
+	 * @return 변환된 DataSource
+	 * @throws IllegalArgumentException objects가 null인 경우
+	 * @throws RuntimeException         객체 변환 중 오류가 발생한 경우
+	 */
+	public static <T> DataSource fromObjects (List<T> objects) {
+		if (objects == null) {
+			throw new IllegalArgumentException("Objects list cannot be null");
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+		List<DataRow> rows = objects.stream()
+									.map(obj -> {
+										try {
+											return mapper.toDataRow(obj);
+										} catch (ObjectMappingException e) {
+											throw new RuntimeException("Failed to convert object to DataRow", e);
+										}
+									})
+									.toList();
+
+		return new ListDataSource(rows);
+	}
+
+	/**
+	 * InputStream으로부터 스트리밍 DataSource를 생성합니다.
+	 * 지연 평가를 지원하며, toList() 호출 시점에 파싱이 수행됩니다.
+	 *
+	 * @param inputStream 데이터 입력 스트림
+	 * @param format      데이터 형식
+	 * @return 스트리밍 DataSource
+	 * @throws IllegalArgumentException inputStream 또는 format이 null인 경우
+	 */
+	public static DataSource fromStream (java.io.InputStream inputStream, Format format) {
+		if (inputStream == null) {
+			throw new IllegalArgumentException("InputStream cannot be null");
+		}
+		if (format == null) {
+			throw new IllegalArgumentException("Format cannot be null");
+		}
+
+		return new StreamDataSource(inputStream, format);
+	}
+
+	/**
+	 * 파일로부터 스트리밍 DataSource를 생성합니다.
+	 * 파일을 즉시 로드하지 않고 지연 평가를 지원합니다.
+	 *
+	 * @param filePath 데이터 파일의 경로
+	 * @return 스트리밍 DataSource
+	 * @throws IllegalArgumentException 파일 경로가 유효하지 않거나 파일을 읽을 수 없는 경우
+	 * @throws RuntimeException        FileInputStream 생성 중 오류가 발생한 경우
+	 */
+	public static DataSource fromStreamFile (String filePath) {
+		validateFilePath(filePath);
+
+		File file = new File(filePath);
+		validateFile(file);
+
+		try {
+			Format format = Format.fromExtension(filePath);
+			FileInputStream inputStream = new FileInputStream(file);
+
+			return new StreamDataSource(inputStream, format);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to create FileInputStream: " + filePath, e);
 		}
 	}
 

@@ -1,7 +1,7 @@
 package com.datamorph.parser;
 
 import com.datamorph.core.DataRow;
-import com.datamorph.error.ParseException;
+import com.datamorph.exceptions.ParseException;
 
 import java.util.ArrayList;
 import java.util.List;
