@@ -1,13 +1,17 @@
 package com.datamorph.core;
 
 import com.datamorph.exceptions.ParseException;
+import com.datamorph.exceptions.WriteException;
 import com.datamorph.mapper.ObjectMapper;
 import com.datamorph.exceptions.ObjectMappingException;
 import com.datamorph.parser.Parser;
 import com.datamorph.parser.ParserFactory;
+import com.datamorph.writer.Writer;
+import com.datamorph.writer.WriterFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -210,6 +214,171 @@ public final class DataMorph {
 	private static void validateFormat (Format format) {
 		if (format == null) {
 			throw new IllegalArgumentException("Format cannot be null");
+		}
+	}
+
+	/**
+	 * 객체 리스트를 파일에 저장합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * List<Employee> employees = Arrays.asList(
+	 *     new Employee("John", 30, 50000),
+	 *     new Employee("Jane", 25, 45000)
+	 * );
+	 * DataMorph.saveObjectsToFile(employees, "employees.csv");
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param objects 저장할 객체 리스트
+	 * @param filePath 저장할 파일 경로
+	 * @param <T> 객체 타입
+	 * @throws IllegalArgumentException objects나 filePath가 null인 경우
+	 * @throws RuntimeException 파일 저장 중 오류가 발생한 경우
+	 */
+	public static <T> void saveObjectsToFile(List<T> objects, String filePath) {
+		if (objects == null) {
+			throw new IllegalArgumentException("Objects list cannot be null");
+		}
+		if (filePath == null || filePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("File path cannot be null or empty");
+		}
+
+		DataSource dataSource = fromObjects(objects);
+		dataSource.toFile(filePath);
+	}
+
+	/**
+	 * 객체 리스트를 지정된 포맷의 파일에 저장합니다.
+	 *
+	 * @param objects 저장할 객체 리스트
+	 * @param filePath 저장할 파일 경로
+	 * @param format 저장할 포맷
+	 * @param <T> 객체 타입
+	 * @throws IllegalArgumentException objects, filePath, format이 null인 경우
+	 * @throws RuntimeException 파일 저장 중 오류가 발생한 경우
+	 */
+	public static <T> void saveObjectsToFile(List<T> objects, String filePath, Format format) {
+		if (objects == null) {
+			throw new IllegalArgumentException("Objects list cannot be null");
+		}
+		if (filePath == null || filePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("File path cannot be null or empty");
+		}
+		if (format == null) {
+			throw new IllegalArgumentException("Format cannot be null");
+		}
+
+		DataSource dataSource = fromObjects(objects);
+		dataSource.toFile(filePath, format);
+	}
+
+	/**
+	 * 파일 포맷을 변환합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * // CSV 파일을 JSON으로 변환
+	 * DataMorph.convertFile("input.csv", "output.json");
+	 * 
+	 * // 특정 포맷 지정
+	 * DataMorph.convertFile("data.txt", "result.txt", Format.CSV, Format.JSON);
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param inputFilePath 입력 파일 경로
+	 * @param outputFilePath 출력 파일 경로
+	 * @throws IllegalArgumentException 파일 경로가 null이거나 빈 문자열인 경우
+	 * @throws RuntimeException 파일 변환 중 오류가 발생한 경우
+	 */
+	public static void convertFile(String inputFilePath, String outputFilePath) {
+		if (inputFilePath == null || inputFilePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("Input file path cannot be null or empty");
+		}
+		if (outputFilePath == null || outputFilePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("Output file path cannot be null or empty");
+		}
+
+		try {
+			DataSource dataSource = from(inputFilePath);
+			dataSource.toFile(outputFilePath);
+		} catch (ParseException e) {
+			throw new RuntimeException("Failed to convert file from " + inputFilePath + " to " + outputFilePath, e);
+		}
+	}
+
+	/**
+	 * 파일 포맷을 변환합니다 (포맷 명시).
+	 *
+	 * @param inputFilePath 입력 파일 경로
+	 * @param outputFilePath 출력 파일 경로
+	 * @param inputFormat 입력 파일 포맷
+	 * @param outputFormat 출력 파일 포맷
+	 * @throws IllegalArgumentException 파일 경로나 포맷이 null인 경우
+	 * @throws RuntimeException 파일 변환 중 오류가 발생한 경우
+	 */
+	public static void convertFile(String inputFilePath, String outputFilePath, 
+								   Format inputFormat, Format outputFormat) {
+		if (inputFilePath == null || inputFilePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("Input file path cannot be null or empty");
+		}
+		if (outputFilePath == null || outputFilePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("Output file path cannot be null or empty");
+		}
+		if (inputFormat == null) {
+			throw new IllegalArgumentException("Input format cannot be null");
+		}
+		if (outputFormat == null) {
+			throw new IllegalArgumentException("Output format cannot be null");
+		}
+
+		try {
+			validateFilePath(inputFilePath);
+			File file = new File(inputFilePath);
+			validateFile(file);
+
+			Parser parser = ParserFactory.createParser(inputFormat);
+			List<DataRow> rows;
+
+			try (FileInputStream inputStream = new FileInputStream(file)) {
+				rows = parser.parse(inputStream);
+			}
+
+			Writer writer = WriterFactory.createWriter(outputFormat);
+			try (FileOutputStream outputStream = new FileOutputStream(outputFilePath)) {
+				writer.write(rows, outputStream);
+			}
+
+		} catch (ParseException | WriteException | IOException e) {
+			throw new RuntimeException("Failed to convert file from " + inputFilePath + " to " + outputFilePath, e);
+		}
+	}
+
+	/**
+	 * 문자열 데이터를 파일에 저장합니다.
+	 *
+	 * @param content 저장할 데이터 문자열
+	 * @param inputFormat 입력 데이터의 포맷
+	 * @param outputFilePath 출력 파일 경로
+	 * @throws IllegalArgumentException content, inputFormat, outputFilePath가 null인 경우
+	 * @throws RuntimeException 파일 저장 중 오류가 발생한 경우
+	 */
+	public static void saveStringToFile(String content, Format inputFormat, String outputFilePath) {
+		if (content == null) {
+			throw new IllegalArgumentException("Content cannot be null");
+		}
+		if (inputFormat == null) {
+			throw new IllegalArgumentException("Input format cannot be null");
+		}
+		if (outputFilePath == null || outputFilePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("Output file path cannot be null or empty");
+		}
+
+		try {
+			DataSource dataSource = fromString(content, inputFormat);
+			dataSource.toFile(outputFilePath);
+		} catch (ParseException e) {
+			throw new RuntimeException("Failed to save string to file: " + outputFilePath, e);
 		}
 	}
 }

@@ -2,8 +2,13 @@ package com.datamorph.core;
 
 import com.datamorph.mapper.ObjectMapper;
 import com.datamorph.exceptions.ObjectMappingException;
+import com.datamorph.exceptions.WriteException;
 import com.datamorph.transform.Transform;
+import com.datamorph.writer.Writer;
+import com.datamorph.writer.WriterFactory;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -112,5 +117,101 @@ public interface DataSource {
 						   }
 					   })
 					   .toList();
+	}
+
+	/**
+	 * 데이터를 파일에 저장합니다.
+	 * <p>
+	 * 파일 확장자를 기반으로 자동으로 포맷을 결정합니다.
+	 * 예시:
+	 * <pre>{@code
+	 * dataSource.toFile("output.csv");  // CSV로 저장
+	 * dataSource.toFile("data.json");   // JSON으로 저장
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param filePath 저장할 파일 경로
+	 * @throws IllegalArgumentException 파일 경로가 null이거나 빈 문자열인 경우, 지원하지 않는 확장자인 경우
+	 * @throws RuntimeException 파일 쓰기 중 오류가 발생한 경우
+	 */
+	default void toFile(String filePath) {
+		if (filePath == null || filePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("File path cannot be null or empty");
+		}
+
+		try {
+			Writer writer = WriterFactory.createWriterFromPath(filePath);
+			List<DataRow> data = toList();
+			
+			try (FileOutputStream fos = new FileOutputStream(filePath)) {
+				writer.write(data, fos);
+			}
+		} catch (WriteException | IOException e) {
+			throw new RuntimeException("Failed to write data to file: " + filePath, e);
+		}
+	}
+
+	/**
+	 * 데이터를 지정된 포맷의 파일에 저장합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * dataSource.toFile("output.txt", Format.CSV);  // CSV 포맷으로 저장
+	 * dataSource.toFile("data.txt", Format.JSON);   // JSON 포맷으로 저장
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param filePath 저장할 파일 경로
+	 * @param format 저장할 포맷
+	 * @throws IllegalArgumentException 파일 경로나 포맷이 null인 경우
+	 * @throws RuntimeException 파일 쓰기 중 오류가 발생한 경우
+	 */
+	default void toFile(String filePath, Format format) {
+		if (filePath == null || filePath.trim().isEmpty()) {
+			throw new IllegalArgumentException("File path cannot be null or empty");
+		}
+		if (format == null) {
+			throw new IllegalArgumentException("Format cannot be null");
+		}
+
+		try {
+			Writer writer = WriterFactory.createWriter(format);
+			List<DataRow> data = toList();
+			
+			try (FileOutputStream fos = new FileOutputStream(filePath)) {
+				writer.write(data, fos);
+			}
+		} catch (WriteException | IOException e) {
+			throw new RuntimeException("Failed to write data to file: " + filePath, e);
+		}
+	}
+
+	/**
+	 * 데이터를 문자열로 변환합니다.
+	 * <p>
+	 * 예시:
+	 * <pre>{@code
+	 * String csvString = dataSource.toString(Format.CSV);
+	 * String jsonString = dataSource.toString(Format.JSON);
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param format 변환할 포맷
+	 * @return 변환된 문자열
+	 * @throws IllegalArgumentException 포맷이 null인 경우
+	 * @throws RuntimeException 변환 중 오류가 발생한 경우
+	 */
+	default String toString(Format format) {
+		if (format == null) {
+			throw new IllegalArgumentException("Format cannot be null");
+		}
+
+		try {
+			Writer writer = WriterFactory.createWriter(format);
+			List<DataRow> data = toList();
+			return writer.writeToString(data);
+		} catch (WriteException e) {
+			throw new RuntimeException("Failed to convert data to string", e);
+		}
 	}
 }
