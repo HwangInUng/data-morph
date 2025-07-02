@@ -201,10 +201,27 @@ public class JsonParser extends AbstractParser {
 	}
 
 	/**
+	 * 단일 JSON 객체를 DataRow로 변환 (JsonLinesParser에서 사용)
+	 */
+	public DataRow convertJsonToDataRow(String jsonObject) {
+		try {
+			Object parsed = parseJson(jsonObject.trim());
+			if (parsed instanceof Map) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> map = (Map<String, Object>) parsed;
+				return convertMapToDataRow(map);
+			}
+			throw createParseException("JSON must be an object");
+		} catch (Exception e) {
+			throw createParseException("Failed to parse JSON object: " + e.getMessage(), e);
+		}
+	}
+
+	/**
 	 * Map을 DataRow로 변환 (중첩 객체 평면화 포함)
 	 */
 	@SuppressWarnings("unchecked")
-	private DataRow convertMapToDataRow(Map<String, Object> map) {
+	protected DataRow convertMapToDataRow(Map<String, Object> map) {
 		DataRow row = new DataRow();
 		flattenMap(map, "", row);
 		return row;

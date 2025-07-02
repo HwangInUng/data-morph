@@ -1,9 +1,21 @@
 package com.datamorph.parser;
 
 import com.datamorph.core.DataRow;
+import com.datamorph.exceptions.ParseException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class CsvParser extends AbstractParser {
 	private char delimiter = ',';
@@ -69,6 +81,69 @@ public class CsvParser extends AbstractParser {
 		}
 
 		return result;
+	}
+
+	@Override
+	public Stream<DataRow> parseAsStream(InputStream input) throws ParseException {
+		if (input == null) {
+			throw new IllegalArgumentException("InputStream cannot be null");
+		}
+		
+		BufferedReader reader = new BufferedReader(
+			new InputStreamReader(input, StandardCharsets.UTF_8));
+		
+		try {
+			// 헤더 행 읽기
+			String headerLine = reader.readLine();
+			if (headerLine == null || headerLine.trim().isEmpty()) {
+				reader.close();
+				return Stream.empty();
+			}
+			
+			if (!isValidCsvFormat(headerLine)) {
+				reader.close();
+				throw createParseException("Invalid CSV format");
+			}
+			
+			String[] headers = parseFields(headerLine);
+			if (headers.length == 0) {
+				reader.close();
+				return Stream.empty();
+			}
+			
+			// 데이터 행 반복자 생성
+			CsvRowIterator iterator = new CsvRowIterator(reader, headers);
+			
+			// Stream 생성 (자동 리소스 관리 포함)
+			return StreamSupport.stream(
+				Spliterators.spliteratorUnknownSize(iterator, 
+					Spliterator.ORDERED | Spliterator.NONNULL), false)
+				.onClose(() -> {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						System.err.println("Warning: Failed to close BufferedReader: " + e.getMessage());
+					}
+				});
+				
+		} catch (IOException e) {
+			try {
+				reader.close();
+			} catch (IOException closeException) {
+				e.addSuppressed(closeException);
+			}
+			throw createParseException("Failed to read CSV header: " + e.getMessage());
+		}
+	}
+	
+	@Override
+	public boolean supportsStreamingParsing() {
+		return true;
+	}
+	
+	@Override
+	public int getRecommendedBufferSize() {
+		return 16384; // 16KB for CSV
 	}
 
 	/**
@@ -238,5 +313,73 @@ public class CsvParser extends AbstractParser {
 
 		// 3순위: 문자열
 		return trimmed;
+	}
+	
+	/**
+	 * CSV 행을 반복 처리하는 Iterator 구현체
+	 */
+	private class CsvRowIterator implements Iterator<DataRow> {
+		private final BufferedReader reader;
+		private final String[] headers;
+		private String nextLine;
+		private boolean hasCheckedNext = false;
+		private int currentLineNumber = 1; // 헤더 다음부터 시작
+		
+		public CsvRowIterator(BufferedReader reader, String[] headers) {
+			this.reader = reader;
+			this.headers = headers;
+		}
+		
+		@Override
+		public boolean hasNext() {
+			if (!hasCheckedNext) {
+				try {
+					nextLine = reader.readLine();
+					hasCheckedNext = true;
+					
+					// 빈 행들은 건너뛰기
+					while (nextLine != null && nextLine.trim().isEmpty()) {
+						currentLineNumber++;
+						nextLine = reader.readLine();
+					}
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to read next line", e);
+				}
+			}
+			return nextLine != null;
+		}
+		
+		@Override
+		public DataRow next() {
+			if (!hasNext()) {
+				throw new NoSuchElementException("No more rows to read");
+			}
+			
+			try {
+				String line = nextLine;
+				hasCheckedNext = false;
+				currentLineNumber++;
+				
+				String[] fields = parseFields(line);
+				
+				if (fields.length != headers.length) {
+					throw new RuntimeException("Column count mismatch at line " + currentLineNumber +
+							". Expected: " + headers.length + " columns, Got: " + fields.length + " columns");
+				}
+				
+				DataRow row = new DataRow();
+				for (int i = 0; i < headers.length; i++) {
+					String header = headers[i].trim();
+					String value = fields[i];
+					
+					Object convertedValue = processFieldValue(value);
+					row.set(header, convertedValue);
+				}
+				
+				return row;
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to parse line " + currentLineNumber + ": " + e.getMessage(), e);
+			}
+		}
 	}
 }
