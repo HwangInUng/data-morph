@@ -1,314 +1,321 @@
-# data-morph
+# DataMorph
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17+-orange.svg" alt="Java 11+">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
+  <img src="https://img.shields.io/badge/Build-Gradle-blue.svg" alt="Gradle">
+</p>
+
 ## 🚀 Overview
-> DataMorph는 다양한 데이터 소스와 타겟 간의 자유로운 변환을 지원하는 경량 Java 라이브러리입니다. 직관적인 Fluent API로 파일, 객체, 메모리 데이터를 원하는 형태로 효율적으로 변환할 수 있습니다.
 
-### Key Features
-- Flexible I/O : File <-> File, Object <-> File, Memory Processing 지원
-- Fluent API : 직관적인 메서드 체이닝으로 읽기 쉬운 코드
-- High Performance : 대용량 파일 스트리밍 처리 및 메모리 최적화
-- Zero Dependencies : 순수 Java 구현으로 가벼운 용량
-- Configuration-Driven : YAML 등 설정 파일 지원
+**DataMorph**는 다양한 데이터 소스(CSV, JSON)를 파싱하고 변환하는 Java 라이브러리입니다. 직관적인 Fluent API를 통해 데이터 변환 작업을 체이닝할 수 있으며, 메모리 효율적인 스트리밍 처리를 지원합니다.
 
-### Why DataMorph?
-|DataMorph|vs. Jackson + Commons CSV|
-|---|---|
-|통합된 단일 API|여러 라이브러리 조합 필요|
-|Zero Dependencies|Multi Dependencies|
-|즉시 사용 가능|복잡한 설정|
+### ✨ Key Features
 
-### Data Flow Architecture
-```mermaid
-flowchart LR
-    subgraph "Input Sources"
-        A1[Files<br/>CSV, JSON, XML]
-        A2[Objects<br/>List, Array]
-        A3[Strings<br/>Raw Data]
-        A4[Streams<br/>InputStream]
-    end
-    
-    subgraph "Processing Pipeline"
-        B1[Parser<br/>Format Detection]
-        B2[Transform Engine<br/>• Rename Fields<br/>• Convert Types<br/>• Calculate Values<br/>• Add/Remove Fields]
-        B3[Filter Engine<br/>• Conditions<br/>• Validation<br/>• Range Check<br/>• Pattern Match]
-        B4[Memory Manager<br/>• Batch Processing<br/>• Backpressure Control<br/>• GC Optimization]
-    end
-    
-    subgraph "Output Targets"
-        C1[Files<br/>Any Format]
-        C2[Objects<br/>POJOs, Collections]
-        C3[Streams<br/>Reactive Processing]
-        C4[Strings<br/>Serialized Data]
-    end
-    
-    A1 --> B1
-    A2 --> B1
-    A3 --> B1
-    A4 --> B1
-    
-    B1 --> B2
-    B2 --> B3
-    B3 --> B4
-    
-    B4 --> C1
-    B4 --> C2
-    B4 --> C3
-    B4 --> C4
-    
-    B4 -.->|"Memory Monitoring"| B2
-    B4 -.->|"Batch Size Control"| B3
-    
-    style B2 fill:#06923E
-    style B3 fill:#E67514
-    style B4 fill:#9B177E
-```
+- **🔄 Fluent API**: 직관적인 메서드 체이닝을 통한 데이터 변환
+- **📊 Multiple Data Sources**: 파일, 문자열, 객체 리스트, 스트림 지원
+- **🚀 Streaming Processing**: 대용량 데이터를 위한 메모리 효율적 처리
+- **🔧 POJO Mapping**: 리플렉션 기반 양방향 객체 변환
+- **📈 Memory Monitoring**: JMX 기반 실시간 메모리 사용량 추적
+- **🎯 Zero Dependencies**: 순수 Java 구현으로 가벼운 용량
 
-### Core Components
-```mermaid
-classDiagram
-    class DataMorph {
-        +from(source) DataSource
-        +fromString(content) DataSource
-    }
-    
-    class DataSource {
-        +transform(mapping) DataSource
-        +filter(condition) DataSource
-        +validate(rules) DataSource
-        +batchSize(size) DataSource
-        +to(target) ProcessResult
-        +toList() List~DataRow~
-        +toStream() Stream~DataRow~
-        +toStreamingTarget(handler) ProcessResult
-    }
-    
-    class StreamingProcessor {
-        +processBatch(batch) void
-        +handleBackpressure() void
-        +getMemoryUsage() long
-        +adjustBatchSize() void
-    }
-    
-    class FieldMapping {
-        +rename(old, new) FieldMapping
-        +convert(field, type) FieldMapping
-        +add(field, function) FieldMapping
-        +remove(field) FieldMapping
-    }
-    
-    class ValidationRules {
-        +required(fields...) ValidationRules
-        +range(field, min, max) ValidationRules
-        +pattern(field, regex) ValidationRules
-    }
-    
-    class MemoryManager {
-        +monitorUsage() long
-        +triggerGC() void
-        +optimizeBatchSize(usage) int
-    }
-    
-    class ErrorHandler {
-        +skipErrors(boolean) ErrorHandler
-        +collectErrors() List~ProcessingError~
-        +onError(handler) ErrorHandler
-    }
-    
-    DataMorph --> DataSource
-    DataSource --> StreamingProcessor
-    DataSource --> FieldMapping
-    DataSource --> ValidationRules
-    DataSource --> MemoryManager
-    DataSource --> ErrorHandler
-    StreamingProcessor --> MemoryManager
-```
+### 🎯 Why DataMorph?
 
-### Package Structure
-```bash
-com.datamorph/
-├── core/                           # 핵심 API 및 데이터 모델
-├── parser/                         # 파일 파싱 엔진
-├── transform/                      # 데이터 변환 엔진
-├── writer/                         # 파일 출력 엔진
-├── streaming/                      # 대용량 처리 및 최적화
-├── Config/                         # 설정 관리
-├── error/                          # 예외 처리
-└── util/                           # 유틸리티
-```
----
+| DataMorph | vs. 기존 방식 |
+|-----------|-------------|
+| 통합된 단일 API | 여러 라이브러리 조합 필요 |
+| Zero Dependencies | Multi Dependencies |
+| 즉시 사용 가능 | 복잡한 설정 |
+| 스트리밍 처리 | 메모리 부족 위험 |
 
-## 💻 Contents
-### ⚡️ Quick Start - (작업 중)
-#### Maven
-```xml
-<dependency>
-    <groupId>com.example</groupId>
-    <artifactId>datamorph</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
+## 📦 Installation
 
-#### Gradle
-```gradle
-implementation 'com.example:datamorph:1.0.0'
-```
+### Gradle (Kotlin DSL)
+```kotlin
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+}
 
-#### Basic File Processing
-```java
-// file data read
-DataSource dataSource = DataMorph.from("employees.csv");
-
-// filter & transform
-List<DataRow> results = dataSource
-    .filter(row -> {
-        Integer age = row.getInt("age");
-        return age != null && age >= 30;
-    })
-    .transform(row -> {
-        Integer salary = row.getInt("salary");
-        if (salary != null) {
-            int bonusSalary = (int)(salary * 1.1);
-            row.set("salary", bonusSalary);
-        }
-    })
-    .toList();
-```
-
-#### String Content Processing
-```java
-// JSON data read
-String jsonData = "[{\"name\":\"John\",\"age\":30}]";
-DataSource dataSource = DataMorph.fromString(jsonData, Format.JSON);
-
-// data process
-List<DataRow> results = dataSource.toList();
-```
-
-#### CSV File Example
-```java
-// CSV: name,age,department
-// John,30,Engineering
-// Jane,25,Marketing
-
-DataSource employees = DataMorph.from("employees.csv");
-
-List<DataRow> seniorEngineers = employees
-    .filter(row -> "Engineering".equals(row.getString("department")))
-    .filter(row -> row.getInt("age") > 30)
-    .toList();
-```
-
-### 📚 API Examples
-
-#### 파일 처리
-```java
-// CSV file read
-DataSource csvData = DataMorph.from("data.csv");
-
-// JSON file read 
-DataSource jsonData = DataMorph.from("data.json");
-
-// auto formatting
-DataSource autoData = DataMorph.from("unknown.csv");
-```
-
-#### 문자열 처리
-```java
-// CSV parsing
-String csvContent = "name,age\nJohn,30\nJane,25";
-DataSource csvData = DataMorph.fromString(csvContent, Format.CSV);
-
-// JSON parsing
-String jsonContent = "[{\"name\":\"John\",\"age\":30}]";
-DataSource jsonData = DataMorph.fromString(jsonContent, Format.JSON);
-```
-
-#### 데이터 변환
-```java
-DataSource transformed = DataMorph.from("employees.csv")
-    .transform(row -> {
-        Integer age = row.getInt("age");
-        if (age != null) {
-            String ageGroup = age < 30 ? "젊은층" : age < 50 ? "중년층" : "장년층";
-            row.set("age_group", ageGroup);
-        }
-    })
-    .transform(row -> row.set("salary", (int)(salary * 1.05)));
-```
-
-#### 데이터 필터링
-```java
-DataSource filtered = DataMorph.from("sales.csv")
-    .filter(row -> row.isOverCount())
-    .filter(row -> "서울".equals(row.getString("region")));
-```
-
-#### 체인 방식 처리
-```java
-List<DataRow> result = DataMorph.from("customers.csv")
-    .filter(row -> "VIP".equals(row.getString("grade")))
-    .transform(row -> row.set("discount", "20%"))
-    .filter(row -> "Active".equals(row.getString("status")))
-    .toList();
-```
-
-#### 에러 처리
-```java
-try {
-    DataSource data = DataMorph.from("data.csv");
-    List<DataRow> results = data.toList();
-} catch (IllegalArgumentException e) {
-    // 파일 관련 오류 (존재하지 않음, 잘못된 경로 등)
-    System.err.println("파일 오류: " + e.getMessage());
-} catch (ParseException e) {
-    // 파싱 오류 (잘못된 형식, 지원하지 않는 포맷 등)
-    System.err.println("파싱 오류: " + e.getMessage());
+dependencies {
+    implementation("com.github.HwangInUng:data-morph:1.0.0")
 }
 ```
 
-### 📄 Documentation - (작업 중)
-자세한 API 사용법, 강화된 기능과 설정 옵션들은 다음 문서들을 참고하세요.
-- [API Reference Guide]() - 전체 메서드 문서화 및 예제
-- [Configuration Guide]() - YAML 등 설정 및 고급 옵션
-- [Performance Tuning]() - 대용량 파일 처리 및 최적화
-- [Example]() - 실제 사용 사례 및 샘플
+### Gradle (Groovy)
+```groovy
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
 
-### ⚙️ Configuration - (작업 중)
-#### YAML Configuration
-#### Properties Configuration
-#### Using Configuration
+dependencies {
+    implementation 'com.github.HwangInUng:data-morph:1.0.0'
+}
+```
 
-### 🎯 Performance Benchmarks - (작업 중)
-#### Processing Performance
-|File Size|Records|Processing Time|Memory Usage|Throughput|
-|---|---|---|---|---|
-|10MB|||||
-|100MB|||||
-|1GB|||||
+### Maven
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 
-#### Memory Efficiency
-|Operation Type|File Size|Peak Memory|Average Memory|Memory Growth|
-|---|---|---|---|---|
-|Simple Transform|||||
-|Complex Transform|||||
-|Streaming Process|||||
-|Batch Process|||||
+<dependencies>
+    <dependency>
+        <groupId>com.github.HwangInUng</groupId>
+        <artifactId>data-morph</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+</dependencies>
+```
 
-#### Feature Performance
-|Feature|Small Files(<10MB)|Large Files(1GB+)|Notes|
-|---|---|---|---|
-|CSV Parsing||||
-|JSON Generation||||
-|Field Transformation||||
-|Data Validation||||
-|Error Recovery||||
+[![](https://jitpack.io/v/HwangInUng/data-morph.svg)](https://jitpack.io/#HwangInUng/data-morph)
 
-#### Streaming vs Non-Streaming
-|File Size|Non-Streaming Memory|Streaming Memory|Memory Reduction|
-|---|---|---|---|
-|100MB||||
-|1GB||||
-|5GB||||
+## 🚀 Quick Start
+
+### 기본 파일 처리
+
+```java
+// CSV 파일 읽기 및 변환
+DataSource dataSource = DataMorph.from("employees.csv");
+
+List<DataRow> results = dataSource
+    .filter(row -> row.getInt("age") > 30)
+    .transform(row -> {
+        Integer salary = row.getInt("salary");
+        if (salary != null) {
+            row.set("salary", (int)(salary * 1.1)); // 10% 인상
+        }
+    })
+    .toList();
+
+// 결과를 파일로 저장
+dataSource.toFile("processed_employees.csv");
+```
+
+### 문자열 처리
+
+```java
+// JSON 문자열 파싱
+String jsonData = "[{\"name\":\"John\",\"age\":30},{\"name\":\"Jane\",\"age\":25}]";
+DataSource dataSource = DataMorph.fromString(jsonData, Format.JSON);
+
+List<DataRow> adults = dataSource
+    .filter(row -> row.getInt("age") >= 18)
+    .toList();
+```
+
+### 객체 리스트 처리
+
+```java
+// POJO 객체 리스트 변환
+List<Employee> employees = Arrays.asList(
+    new Employee("John", 30, 50000),
+    new Employee("Jane", 25, 45000)
+);
+
+DataSource dataSource = DataMorph.fromObjects(employees);
+List<Employee> processedEmployees = dataSource
+    .transform(Transform.builder()
+        .rename("emp_name", "name")
+        .add("bonus", 1000)
+        .build())
+    .toList(Employee.class);
+```
 
 ---
 
-## 🪪 라이선스 표기 - (작업 중)
+## 📚 API Reference
+
+자세한 API 문서는 [API Reference](docs/API_REFERENCE.md)를 참조하세요.
+
+---
+
+## 🎨 Examples
+
+다양한 사용 예제는 [Examples](docs/EXAMPLES.md)를 참조하세요.
+
+---
+
+## 🏗️ Architecture
+
+### 패키지 구조
+
+```
+com.datamorph/
+├── core/                    # 핵심 API (DataMorph, DataSource, DataRow)
+├── parser/                  # 파일 파싱 엔진 (CSV, JSON)
+├── writer/                  # 파일 출력 엔진 (CSV, JSON)
+├── transform/               # 데이터 변환 엔진
+├── mapper/                  # POJO 매핑 엔진
+├── streaming/               # 스트리밍 처리 및 메모리 관리
+├── util/                    # 유틸리티 (포맷 감지)
+└── exceptions/              # 예외 처리
+```
+
+### 클래스 다이어그램
+
+```mermaid
+classDiagram
+    class DataMorph {
+        +from(filePath) DataSource
+        +fromString(content, format) DataSource
+        +fromObjects(objects) DataSource
+        +fromStream(stream, format) DataSource
+    }
+    
+    class DataSource {
+        +transform(transformer) DataSource
+        +transform(transform) DataSource
+        +filter(predicate) DataSource
+        +toList() List~DataRow~
+        +toList(clazz) List~T~
+        +toFile(path) void
+        +toString(format) String
+    }
+    
+    class DataRow {
+        +getString(field) String
+        +getInt(field) Integer
+        +getDouble(field) Double
+        +getBoolean(field) Boolean
+        +set(field, value) void
+        +has(field) boolean
+        +remove(field) Object
+    }
+    
+    class Transform {
+        +builder() TransformBuilder
+        +apply(row) DataRow
+    }
+    
+    class ObjectMapper {
+        +toObject(row, clazz) T
+        +toDataRow(object) DataRow
+    }
+    
+    class MemoryMonitor {
+        +checkMemoryUsage() void
+        +getMemoryUsageRatio() double
+        +isMemoryPressureHigh() boolean
+    }
+    
+    DataMorph --> DataSource
+    DataSource --> DataRow
+    DataSource --> Transform
+    DataSource --> ObjectMapper
+    DataSource --> MemoryMonitor
+```
+
+---
+
+## 🔧 Advanced Features
+
+### 스트리밍 처리
+
+```java
+// 대용량 파일 처리 (메모리 효율적)
+DataSource largeDataSource = DataMorph.fromStreamFile("large_data.csv");
+
+List<DataRow> results = largeDataSource
+    .filter(row -> row.getInt("score") > 80)
+    .transform(row -> row.set("grade", "A"))
+    .toList();
+```
+
+### 메모리 모니터링
+
+```java
+MemoryMonitor monitor = new MemoryMonitor();
+
+// 메모리 사용량 확인
+monitor.checkMemoryUsage();
+
+// 메모리 정보 출력
+System.out.println(monitor.getMemoryInfo());
+```
+
+### 파일 포맷 변환
+
+```java
+// CSV를 JSON으로 변환
+DataMorph.convertFile("input.csv", "output.json");
+
+// 특정 포맷 지정
+DataMorph.convertFile("data.txt", "result.txt", Format.CSV, Format.JSON);
+```
+
+---
+
+## 📊 Performance
+
+### 메모리 효율성
+
+- **스트리밍 처리**: 대용량 파일도 일정한 메모리 사용량으로 처리
+- **지연 평가**: 필요한 시점에만 데이터 로드
+- **메모리 모니터링**: 실시간 메모리 사용량 추적 및 경고
+
+### 성능 벤치마크
+
+*성능 평가는 현재 진행 중입니다. 다음 업데이트에서 구체적인 벤치마크 결과를 제공할 예정입니다.*
+
+#### 계획된 성능 지표
+- **처리 속도**: 파일 크기별 처리 시간
+- **메모리 사용량**: 일반 처리 vs 스트리밍 처리 비교
+- **처리량**: 초당 처리 가능한 레코드 수
+- **확장성**: 다양한 데이터 크기에서의 성능 변화
+
+#### 예상 성능 특성
+| 파일 크기 | 예상 처리 시간 | 메모리 사용량 | 처리 방식 |
+|-----------|---------------|---------------|-----------|
+| ~10MB     | 1-2초         | 적음          | 일반 처리 |
+| ~100MB    | 5-10초        | 중간          | 스트리밍 권장 |
+| ~1GB+     | 30-60초       | 일정          | 스트리밍 필수 |
+
+### 지원 포맷
+
+| 포맷 | 읽기 | 쓰기 | 스트리밍 |
+|------|------|------|----------|
+| CSV  | ✅   | ✅   | ✅       |
+| JSON | ✅   | ✅   | ✅       |
+
+## 🧪 Testing
+
+```bash
+# 전체 테스트 실행
+./gradlew test
+
+# 특정 테스트 실행
+./gradlew test --tests "DataMorphTest"
+
+# 통합 테스트
+./gradlew test --tests "com.datamorph.integration.*"
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [API Documentation](docs/API_REFERENCE.md)
+- [Examples](docs/EXAMPLES.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+
+---
+
+<p align="center">
+Made with ❤️ by DataMorph Contributors
+</p>
