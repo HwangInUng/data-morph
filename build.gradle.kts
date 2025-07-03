@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "io.github.HwangInUng"
+group = "io.github.datamorph"
 version = "1.0.0"
 
 repositories {
@@ -66,7 +66,7 @@ tasks.javadoc {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "io.github.HwangInUng"
+            groupId = "io.github.datamorph"
             artifactId = "data-morph"
             version = project.version.toString()
             
